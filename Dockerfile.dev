@@ -1,0 +1,30 @@
+# ----------- Stage 1: Builder -----------
+FROM node:18-alpine AS builder
+
+# Set working dir
+WORKDIR /usr/src/app
+
+# Copy package.json and install deps
+COPY package*.json ./
+RUN npm install --only=production
+
+# Copy rest of app
+COPY . .
+
+# ----------- Stage 2: Final Runtime -----------
+FROM node:18-alpine
+
+# Set working dir
+WORKDIR /usr/src/app
+
+# Copy only necessary files from builder stage
+COPY --from=builder /usr/src/app ./
+
+# Set environment variable
+ENV PORT=3000
+
+# Expose port
+EXPOSE 3000
+
+# Start app
+CMD ["node", "server.js"]
